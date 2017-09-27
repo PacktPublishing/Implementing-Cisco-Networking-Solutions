@@ -1,0 +1,136 @@
+IP packet length		: 1500 bytes
+PPP header length		: 8 bytes
+Total packet size		: 1508 bytes
+Total packet size (P)		: 1508*8 bits = 12064 bits
+Wire speed (S)		: 2.048 Mbps = 2048 kbps
+Serialization delay (D=P/S)	: 12064/2048 ms
+			= 5.89 ms
+
+------------------------------------------------------------------------
+
+Total Link length (L)			: 500 kms
+Speed of light in air			: 3 * 10^8 m/s
+Refractive Index of Optical fiber	: 1.5
+Speed of light in glass (S)		: 3*10^8/ 1.5 m/s
+				    = 2 * 10^8 m/s
+Propagation delay (D = L/S)		: (500*1000) / (2 * 10^8)
+				    = 2.5 ms
+
+------------------------------------------------------------------------
+
+IP packet length		: 1500 bytes
+PPP header length		: 8 bytes
+Total packet size		: 1508 bytes
+Total packet size (P)		: 1508*8 bits = 12064 bits
+Wire speed (S)		: 2.048 Mbps = 2048 kbps
+Serialization delay (D=P/S)	: 12064/2048 ms
+			= 5.89 ms
+Max packets in queue	: 100 / 5.89 = 17
+
+
+-------------------------------------------------------------------------
+
+Router(config)# access-list 101 permit udp any 10.0.0.0 255.0.0.0 
+Router(config)# access-list 102 permit ip any 10.16.32.0 255.255.255.0 
+Router(config)# access-list 103 permit ip any 10.16.30.0 255.255.255.0 
+!
+Router(config)# class-map match-all voice
+Router(config-cmap)# match access-group 101
+Router(config-cmap)# exit
+!
+Router(config)# class-map match-all gold
+Router(config-cmap)# match access-group 102
+Router(config-cmap)# exit
+!
+Router(config)# class-map match-all silver
+Router(config-cmap)# match access-group 103
+Router(config-cmap)# exit
+!
+
+--------------------------------------------------------------------------
+
+Router(config)# policy-map Ingress-Mark
+Router(config-pmap)# class voice
+Router(config-pmap-c)# set ip dscp 46
+Router(config-pmap-c)# exit
+Router(config-pmap)# class gold
+Router(config-pmap-c)# set ip dscp 34
+Router(config-pmap-c)# exit
+Router(config-pmap)# class silver
+Router(config-pmap-c)# set ip dscp 26
+Router(config-pmap-c)# exit
+Router(config-pmap)# class class-default
+Router(config-pmap-c)# set ip dscp 0
+Router(config-pmap-c)# exit
+Router(config-pmap)# exit
+Router(config)#
+!
+
+---------------------------------------------------------------------------
+
+!
+Router(config)# interface gig0/1
+Router(config)# service-policy input Ingress-Mark
+!
+
+----------------------------------------------------------------------------
+
+Router(config)# policy-map Ingress-Mark
+Router(config-pmap)# class voice
+Router(config-pmap-c)# police cir percent 25
+Router(config-pmap-c)# set ip dscp 46
+Router(config-pmap-c)# exit
+
+-----------------------------------------------------------------------------
+
+Router(config)# policy-map Egress-shape
+Router(config-pmap)# class silver
+Router(config-pmap-c)# shape average 1000000
+Router(config-pmap-c)# set ip dscp 26
+Router(config-pmap-c)# exit
+Router(config-pmap)# exit
+Router(config)#
+
+-----------------------------------------------------------------------------
+
+Router(config)# class-map voice match-any 
+Router(config-cmap)# match ip dscp cs6
+Router(config-cmap)# match ip dscp 46
+Router(config-cmap)# exit
+Router(config)# class-map gold
+Router(config-cmap)# match ip dscp 34
+Router(config-cmap)# exit
+Router(config)# class-map silver
+Router(config-cmap)# match ip dscp 26
+Router(config-cmap)# exit
+
+------------------------------------------------------------------------------
+
+Router(config)# policy-map Egress-Schedule
+Router(config-pmap)# class voice
+Router(config-pmap-c)# priority percent 25
+Router(config-pmap-c)# exit
+Router(config-pmap)# class gold
+Router(config-pmap-c)# bandwidth remaining percent 33 
+Router(config-pmap-c)# exit
+Router(config-pmap)# class silver
+Router(config-pmap-c)# bandwidth remaining percent 40
+Router(config-pmap-c)# random-detect 
+Router(config-pmap-c)# random-detect ecn
+Router(config-pmap-c)# exit
+Router(config-pmap)# class class-default
+Router(config-pmap-c)# bandwidth remaining percent 27
+Router(config-pmap-c)# fair-queue
+Router(config-pmap-c)# exit
+Router(config-pmap)# exit
+Router(config)#
+!
+
+------------------------------------------------------------------------------
+
+!
+Router(config)# interface Tengig0/0
+Router(config)# service-policy input Egress-Schedule
+!
+
+

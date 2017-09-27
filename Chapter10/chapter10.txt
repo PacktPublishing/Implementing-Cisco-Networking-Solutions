@@ -1,0 +1,111 @@
+Router(config)# access-list 98 permit 192.168.100.100
+Router(config)# access-list 98 permit 192.168.100.101
+Router(config)# access-list 98 deny any
+Router(config)#
+Router(config)# access-list 99 permit 192.168.100.100
+Router(config)# access-list 99 permit 192.168.100.101
+Router(config)# access-list 99 deny any
+Router(config)#
+Router(config)# snmp-server contact Admin@001-246-3579
+Router(config)# snmp-server location HQ-NOC
+Router(config)# snmp-server community C!sc0123 RO 98
+Router(config)# snmp-server community C0nf!d3nt!al RW 99
+Router(config)#
+Router(config)# snmp-server ifindex persist
+Router(config)#
+
+-------------------------------------------------------------------------------------
+
+Router(config)# snmp-server enable traps snmp link-status restart env
+Router(config)# snmp-server host 192.168.20.11 version 2c public alarms
+Router(config)# snmp-server trap-source loopback0
+Router(config)#
+
+-------------------------------------------------------------------------------------
+
+Router(config)# no logging console
+Router(config)# logging buffered 16384
+Router(config)# logging trap warnings
+Router(config)# logging 192.168.20.11
+Router(config)# logging 192.168.20.12
+Router(config)#
+
+-------------------------------------------------------------------------------------
+
+Router-A(config)# clock timezone PST -8
+Router-A(config)# ntp update-calendar
+Router-A(config)# clock calendar-valid
+
+-------------------------------------------------------------------------------------
+
+Router-A(config)# ntp source loopback0
+Router-A(config)# ntp authenticate
+Router-A(config)# ntp authentication-key 1 md5 C!sc0123 
+Router-A(config)# ntp trusted-key 1
+Router-A(config)# ntp server 1.1.1.1 version 2 key 1 prefer
+Router-A(config)# ntp server 1.1.1.2 version 2 key 1
+
+-------------------------------------------------------------------------------------
+
+Router-A(config)# ntp access-group serve-only 10
+Router-A(config)# access-list 10 permit 192.168.21.1
+Router-A(config)# access-list 10 permit 192.168.21.2
+Router-A(config)# access-list 10 permit 192.168.21.3
+
+-------------------------------------------------------------------------------------
+
+Router(config)# aaa new-model
+Router(config)# aaa authentication login default group radius local
+Router(config)# radius-server host 192.168.10.200 key C!sc0123 timeout 60
+Router(config)# line vty 0 4
+Router(config-line)# exec-timeout 5 0
+Router(config-line)# transport input telnet ssh
+Router(config-line)# transport output none
+Router(config-line)# transport preferred none
+Router(config-line)# login authentication default
+
+-------------------------------------------------------------------------------------
+
+Router(config)# access-list 3 permit 192.168.10.0 0.0.0.255
+Router(config)# access-list 3 deny any
+Router(config)# line vty 0 4
+Router(config-line)# access-class 3 in
+
+Router(config)# username Operator1 password Password
+
+-------------------------------------------------------------------------------------
+
+Router> enable view
+Router# configure terminal 
+Router(config)# parser view OpXYZ
+Router(config-view)# secret C!sc0123
+Router(config-view)# command exec include show version
+Router(config-view)# command exec include all show ip 
+Router(config-view)# exit
+Router(config)#
+
+-------------------------------------------------------------------------------------
+
+Router# configure terminal
+Router(config)# ip sla 10
+Router(config-ip-sla)# udp-jitter 10.8.100.2 num-packets 20
+Router(config-ip-sla-jitter)# frequency 180
+Router(config-ip-sla-jitter)# request-data-size 64
+Router(config-ip-sla-jitter)# tag TO-BRANCH1-ROUTER
+Router(config-ip-sla-jitter)# end
+Router(config)# ip sla 20
+Router(config-ip-sla)# http get http://www.xyz.com 
+Router(config-ip-sla-http)# frequency 180
+Router(config-ip-sla)# end
+Router(config)# ip sla schedule 10 life forever start-time now
+Router(config)# ip sla schedule 20 life 86400 start-time now
+
+--------------------------------------------------------------------------------------
+
+Router# configure terminal
+Router(config)# ip sla responder
+
+
+
+
+

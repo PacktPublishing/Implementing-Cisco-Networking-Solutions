@@ -1,0 +1,207 @@
+Switch-A# configure terminal 
+Switch-A(config)# feature vPC 
+Switch-A(config)# feature lacp
+
+---------------------------------------------------------------------------
+
+Switch-A(config)# interface mgmt 0
+Switch-A(config-if)# vrf member management
+Switch-A(config-if)# ip address 100.23.45.66/24 
+Switch-A(config-if)# no shutdown 
+Switch-A(config-if)# exit
+
+Switch-A(config)# vpc domain 1 
+Switch-A(config-vpc-domain)# peer-keepalive destination 100.23.45.65 source 100.23.45.66 vrf peer-keepalive
+Switch-A(config-vpc-domain)# exit
+
+Switch-A(config)# vlan 1-50 
+Switch-A(config-vlan)# no shutdown 
+Switch-A(config-vlan)# exit
+
+-------------------------------------------------------------------------------------------------------------------
+
+Switch-A(config)# interface ethernet 1/8-9
+Switch-A(config-if)# description ***vPC Peer-Link member ***
+Switch-A(config-if)# channel-group 10 mode active 
+Switch-A(config-if)# exit
+
+Switch-A(config)# interface port-channel 10 
+Switch-A(config-if)# description ***vPC Peer-Link ***
+Switch-A(config-if)# switchport
+Switch-A(config-if)# switchport mode trunk 
+Switch-A(config-if)# switchport trunk allowed vlan 1-50 
+Switch-A(config-if)# vpc peer-link 
+Switch-A(config-if)# exit 
+Switch-A(config)#
+
+-------------------------------------------------------------------------------------------------------------------
+
+Switch-A(config)# interface ethernet 1/1
+Switch-A(config-if)# channel-group 1 mode active 
+Switch-A(config-if)# switchport
+Switch-A(config-if)# switchport mode trunk
+Switch-A(config-if)# switchport trunk allowed vlan 1-50 
+Switch-A(config-if)# exit 
+Switch-A(config)# interface port-channel 1 
+Switch-A(config-if)# vpc 1 
+Switch-A(config-if)# exit 
+
+-------------------------------------------------------------------------------------------------------------------
+
+ciscoasa(config)# interface ethernet 0/0
+ciscoasa(config-if)# nameif inside
+ciscoasa(config-if)# security-level 100
+ciscoasa(config-if)# ip address 10.0.14.1 255.255.255.252
+ciscoasa(config-if)# exit
+
+ciscoasa(config)# interface ethernet 0/1
+ciscoasa(config-if)# nameif Secure
+ciscoasa(config-if)# security-level 80
+ciscoasa(config-if)# ip address 10.0.12.1 255.255.255.192
+ciscoasa(config-if)# exit
+
+ciscoasa(config)# interface ethernet 0/2
+ciscoasa(config-if)# nameif DMZ
+ciscoasa(config-if)# security-level 20
+ciscoasa(config-if)# ip address 10.0.12.65 255.255.255.192
+ciscoasa(config-if)# exit
+
+ciscoasa(config)# interface ethernet 0/3
+ciscoasa(config-if)# nameif External
+ciscoasa(config-if)# security-level 0
+ciscoasa(config-if)# ip address 220.23.45.65 255.255.255.252
+ciscoasa(config-if)# exit
+
+---------------------------------------------------------------------------------------------------------------------
+
+asa(config)# object network inside-server1
+asa(config)# host 10.0.12.66
+asa(config)# nat (DMZ,outside) static 220.224.228.232
+
+asa(config)# object network inside-server2
+asa(config)# host 10.0.12.67
+asa(config)# nat (DMZ,outside) static 220.224.228.233
+asa(config)# access-list outside_access extended permit tcp any object inside-server1 eq www
+asa(config)# access-list outside_access extended permit tcp any object inside-server2 eq smtp
+asa(config)# access-group outside_access in interface External 
+
+----------------------------------------------------------------------------------------------------------------------
+
+asa(config)# access-list DMZ-in extended permit tcp any interface Secure eq 8080
+asa(config)# access-list DMZ-in extended permit tcp any interface Outside eq SMTP
+asa(config)# access-group DMZ-in extended deny ip any any
+asa(config)# access-group DMZ-in in interface DMZ
+
+----------------------------------------------------------------------------------------------------------------------
+
+asa(config)# object network NatPool
+asa(config-network-object)# range 200.100.80.0 200.100.80.255
+
+asa(config)# object network users-net
+asa(config-network-object)# subnet 10.0.0.0 255.255.248.0
+asa(config-network-object)# nat (inside,External) dynamic pat-pool NatPool
+
+-----------------------------------------------------------------------------------------------------------------------
+
+asa(config)# route inside 10.0.0.0 255.255.248.0 10.0.14.2
+asa(config)# route External 0.0.0.0 0.0.0.0 220.23.45.66
+
+-----------------------------------------------------------------------------------------------------------------------
+
+asa(config)# access-list frm_ins extended permit tcp any any eq www
+asa(config)# access-group frm_ins extended permit udp any any eq DNS
+asa(config)# access-list frm_ins extended permit tcp any interface Secure eq SMTP
+asa(config)# access-group frm_ins in interface inside
+
+------------------------------------------------------------------------------------------------------------------------
+
+asa(config)# access-list frm_ins extended permit tcp any interface External eq www
+asa(config)# access-group frm_ins extended permit udp any interface External eq DNS
+asa(config)# access-list frm_ins extended permit tcp any interface External eq SMTP
+
+asa(config)# access-list frm_ins extended permit tcp any interface DMZ eq SMTP
+asa(config)# access-list frm_ins extended permit tcp any interface DMZ eq POP3
+asa(config)# access-list frm_ins extended permit tcp any interface DMZ eq 8080
+
+asa(config)# access-group frm_ins in interface inside
+
+-------------------------------------------------------------------------------------------------------------------------
+
+asa(config)# failover lan unit primary
+asa(config)# failover lan interface folink gigabitethernet0/3
+asa(config)# failover interface ip folink 172.27.48.1 255.255.255.0 standby 172.27.48.2
+asa(config)# interface gigabitethernet 0/3
+asa(config-ifc)# no shutdown
+asa(config-ifc)# failover link folink gigabitethernet0/3
+asa(config)# failover ipsec pre-shared-key a3rynsun
+asa(config)# failover
+
+-------------------------------------------------------------------------------------------------------------------------
+
+asa(config)# interface gigabitethernet0/1
+asa(config)# ip addr 10.1.1.1 255.255.255.0 failover 10.1.1.2
+asa(config)# nameif inside
+asa(config)# no shut
+
+--------------------------------------------------------------------------------------------------------------------------
+
+! Configuring the interfaces 
+ravpn-asa(config)# interface ethernet0
+ravpn-asa(config)# ip addr 202.190.80.3 255.255.255.248
+ravpn-asa(config)# nameif outside
+ravpn-asa(config)# security-level 0
+ravpn-asa(config)# interface ethernet1
+ravpn-asa(config)# ip addr 10.0.0.2 255.255.255.252
+ravpn-asa(config)# nameif inside
+ravpn-asa(config)# security-level 100
+
+-------------------------------------------------------------------------------------------------------------------------
+
+! Configuring ISAKMP policy and apply on outside interface
+ravpn-asa(config)# crypto ikev2 policy 1 
+ravpn-asa(config-ikev1-policy)# group 2
+ravpn-asa(config-ikev1-policy)# integrity sha512 
+ravpn-asa(config-ikev1-policy)# prf sha512
+ravpn-asa(config)# crypto ikev2 enable outside 
+!
+
+--------------------------------------------------------------------------------------------------------------------------
+
+! Defining pool for RAVPN users. 
+! This pool needs to be routed on the network towards this gateway
+ravpn-asa(config)# ip local pool RA-POOL 192.168.0.10-192.168.0.15 mask 255.255.255.0
+!
+! Creating user credentials for RAVPN
+ravpn-asa(config)# username testuser password 12345678 
+!
+! Configure an IKEv2 proposal set to specify the encryption and hash algorithms.
+ravpn-asa(config)# crypto ipsec ikev2 ipsec-proposal secure-AES256-SHA512
+hostname(config-ipsec-proposal)# protocol esp encryption aes-256
+hostname(config-ipsec-proposal)# protocol esp integrity sha-512
+!
+
+---------------------------------------------------------------------------------------------------------------------------
+
+! Configure a tunnel group to specify the IP pool to use, and define the group policy.
+!
+ravpn-asa(config)# tunnel-group RAVPN type remote-access 
+ravpn-asa(config)# tunnel-group RAVPN general-attributes 
+ravpn-asa(config-general)# address-pool RA-POOL 
+ravpn-asa(config)# tunnel-group RAVPN ipsec-attributes 
+ravpn-asa(config-tunnel-ipsec)# ikev2 local-authentication pre-shared-key C!sc0123 
+ravpn-asa(config-tunnel-ipsec)# ikev2 remote-authentication pre-shared-key Rem0tek3y
+!
+
+---------------------------------------------------------------------------------------------------------------------------
+
+! Create a Dynamic Crypto Map that lets the ASA receive connections from RAVPN users. 
+!
+hostname(config)# crypto dynamic-map DYNMAP 1 set ikev2 ipsec-proposal AES256-SHA512 
+hostname(config)# crypto dynamic-map DYNMAP 1 set reverse-route 
+!
+! Allow ASA to use the dynamic map to set the parameters of IPsec SAs.
+hostname(config)# crypto map CMAP 1 ipsec-isakmp dynamic DYNMAP 
+hostname(config)# crypto map CMAP interface outside
+!
+
+ 

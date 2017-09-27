@@ -1,0 +1,593 @@
+Router>
+Router> enable
+Router# 
+Router# conf t
+Enter configuration commands, one per line. End with CTRL/Z
+Router(config)# hostname TESTROUTER
+TESTROUTER(config)# 
+
+--------------------------------------------------------------------------------------------------------------------
+
+TESTROUTER(config)# 
+TESTROUTER(config)# interface ethernet0/0
+TESTROUTER(config-if)# ip addr 10.0.0.1 255.255.255.192
+TESTROUTER(config-if)# no shut
+TESTROUTER(config-if)# end
+TESTROUTER#
+* Jun 20 17:44:23.754: %SYS-5-CONFIG_I: Configured from console by console
+TESTROUTER#
+
+--------------------------------------------------------------------------------------------------------------------
+
+TESTROUTER#
+TESTROUTER# copy running-config startup-config
+Destination filename [start-up config]?
+Building configuration...
+[OK]
+TESTROUTER# write mem
+Building configuration...
+[OK]
+TESTROUTER#
+
+--------------------------------------------------------------------------------------------------------------------
+
+Switch-A(config)# vlan 10
+Switch-A(config-vlan)# name “vlan10 for users”
+Switch-A(config-vlan)# mtu 1600
+Switch-A(config-vlan)# exit
+Switch-A(config)# vlan 20
+Switch-A(config-vlan)# name “vlan20 for users”
+Switch-A(config-vlan)# mtu 1600
+Switch-A(config-vlan)# exit
+Switch-A(config)# interface range gig 0/1 - 4
+Switch-A(config-if-range)# switchport mode access
+Switch-A(config-if-range)# switchport access vlan 10
+Switch-A(config-if-range)# speed 1000
+Switch-A(config-if-range)# duplex full
+Switch-A(config-if-range)# exit
+Switch-A(config)# interface range gig 0/5 - 8
+Switch-A(config-if-range)# switchport mode access
+Switch-A(config-if-range)# switchport access vlan 20
+Switch-A(config-if-range)# exit
+Switch-A(config)# interface gig 0/16
+Switch-A(config-if)# switchport mode trunk
+Switch-A(config-if)# switchport mode trunk allowed vlan add 10 20
+Switch-A(config-if)# exit
+Switch-A(config)# interface range gig 0/9 - 10
+Switch-A(config-if-range)# channel-group 2 mode active
+Switch-A(config-if-range)# exit
+Switch-A(config)# interface port-channel2
+Switch-A(config-if)# switchport mode trunk
+Switch-A(config-if)# switchport mode trunk allowed vlan add 10 20
+Switch-A(config-if)# exit
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Router# conf t
+Router(config)# interface gig0/1
+Router(config-if)# ip address 10.0.0.1 255.255.255.0
+Router(config-if)# ip address 10.2.0.1 255.255.255.0 secondary
+Router(config-if)# exit
+Router(config)# exit
+Router# 
+
+-----------------------------------------------------------------------------------------------------------------------
+
+R1(config)# interface e0
+R1(config-if)# ip address 10.0.0.99 255.255.255.0
+R1(config-if)# standby version 2
+R1(config-if)# standby 1 priority 105
+R1(config-if)# standby delay minimum 30 reload 60
+
+R1(config-if)# standby 1 preempt
+R1(config-if)# standby 1 ip 10.0.0.100
+R1(config-if)# standby 1 authentication md5 key-string C!sc0
+
+-----------------------------------------------------------------------------------------------------------------------
+
+R2(config)# interface e0
+R2(config-if)# ip address 10.0.0.101 255.255.255.0
+R2(config-if)# standby version 2
+R2(config-if)# standby 1 priority 95
+R2(config-if)# standby delay minimum 30 reload 60
+
+R2(config-if)# standby 1 preempt
+R2(config-if)# standby 1 ip 10.0.0.100
+R2(config-if)# standby 1 authentication md5 key-string C!sc0
+
+-----------------------------------------------------------------------------------------------------------------------
+
+R1(config)# interface vlan10
+R1(config-if)# ip address 10.0.0.99 255.255.255.0
+R1(config-if)# standby version 2
+R1(config-if)# standby 1 priority 105
+R1(config-if)# standby delay minimum 30 reload 60
+R1(config-if)# standby 1 preempt
+R1(config-if)# standby 1 ip 10.0.0.100
+R1(config-if)# standby 1 authentication md5 key-string C!sc0
+R1(config-if)# exit
+R1(config)# interface vlan20
+R1(config-if)# ip address 10.0.1.99 255.255.255.0
+R1(config-if)# standby version 2
+R1(config-if)# standby 1 priority 95
+R1(config-if)# standby delay minimum 30 reload 60
+R1(config-if)# standby 1 preempt
+R1(config-if)# standby 1 ip 10.0.0.100
+R1(config-if)# standby 1 authentication md5 key
+
+-------------------------------------------------------------------------------------------------------------------------
+
+R2(config)# interface vlan10
+R2(config-if)# ip address 10.0.0.101 255.255.255.0
+R2(config-if)# standby version 2
+R2(config-if)# standby 1 priority 95
+R2(config-if)# standby delay minimum 30 reload 60
+R2(config-if)# standby 1 preempt
+R2(config-if)# standby 1 ip 10.0.0.100
+R2(config-if)# standby 1 authentication md5 key-string C!sc0
+R2(config-if)# exit
+R2(config)# interface vlan20
+R2(config-if)# ip address 10.0.0.101 255.255.255.0
+R2(config-if)# standby version 2
+R2(config-if)# standby 1 priority 105
+R2(config-if)# standby delay minimum 30 reload 60
+R2(config-if)# standby 1 preempt
+R2(config-if)# standby 1 ip 10.0.0.100
+R2(config-if)# standby 1 authentication md5 key-string C!sc0
+
+-------------------------------------------------------------------------------------------------------------------------
+
+R1(config)# track 100 interface gi1/0 ip routing
+R1(config)# interface vlan10
+R1(config-if)# ip address 10.0.0.99 255.255.255.0
+R1(config-if)# standby version 2
+R1(config-if)# standby 1 priority 105
+R1(config-if)# standby 1 preempt
+R1(config-if)# standby 1 track 100 decrement 10
+R1(config-if)# standby 1 ip 10.0.0.100
+R1(config-if)# exit
+R1(config)#
+
+-------------------------------------------------------------------------------------------------------------------------
+
+R2(config)# track 100 interface gi1/0 ip routing
+R2(config)# interface vlan10
+R2(config-if)# ip address 10.0.0.101 255.255.255.0
+R2(config-if)# standby version 2
+R2(config-if)# standby 1 priority 100
+R2(config-if)# standby 1 preempt
+R2(config-if)# standby 1 track 100 decrement 10
+R2(config-if)# standby 1 ip 10.0.0.100
+R2(config-if)# exit
+R2(config)#
+
+------------------------------------------------------------------------------------------------------------------------
+
+R1(config)# track 100 interface e1/0 ip routing
+R1(config)# interface e0/0
+R1(config-if)# ip address 10.0.0.99 255.255.255.0
+R1(config-if)# vrrp 1 priority 120
+R1(config-if)# vrrp 1 authentication md5 key-string C!sc0
+R1(config-if)# vrrp 1 timers advertise 3
+R1(config-if)# vrrp 1 timers learn
+R1(config-if)# vrrp 1 ip 10.0.0.1
+R1(config-if)# vrrp 1 track 100 decrement 15
+R1(config-if)# vrrp 2 priority 110
+R1(config-if)# vrrp 2 timers learn
+R1(config-if)# vrrp 2 ip 10.0.0.2
+R1(config-if)# no vrrp 2 preempt
+R1(config-if)# vrrp 2 track 100 decrement 15
+R1(config-if)# exit
+R1(config)#
+
+--------------------------------------------------------------------------------------------------------------------------
+
+R2(config)# track 100 interface e1/0 ip routing
+R2(config)# interface e0/0
+R2(config-if)# ip address 10.0.0.101 255.255.255.0
+R2(config-if)# vrrp 1 priority 110
+R2(config-if)# vrrp 1 authentication md5 key-string C!sc0
+R2(config-if)# vrrp 1 timers advertise 3
+R2(config-if)# vrrp 1 timers learn
+R2(config-if)# vrrp 1 ip 10.0.0.100
+R2(config-if)# vrrp 1 track 100 decrement 15
+R2(config-if)# vrrp 2 priority 120
+R2(config-if)# vrrp 2 timers learn
+R2(config-if)# vrrp 2 ip 10.0.0.200
+R2(config-if)# no vrrp 2 preempt
+R2(config-if)# vrrp 2 track 100 decrement 15
+R2(config-if)# exit
+R2(config)#
+
+--------------------------------------------------------------------------------------------------------------------------
+
+R1(config)# track 100 interface e1/0 ip routing
+R1(config)# interface e0/0
+R1(config-if)# ip address 10.0.0.99 255.255.255.0
+R1(config-if)# glbp 1 priority 120
+R1(config-if)# glbp 1 preempt delay minimum 60
+R1(config-if)# glbp 1 authentication md5 key-string C!sc0
+R1(config-if)# glbp 1 load-balancing host-dependent
+R1(config-if)# glbp 1 ip 10.0.0.1
+R1(config-if)# glbp 1 weighting 110 lower 95 upper 105 
+R1(config-if)# glbp 1 weighting track 1 decrement 10
+R1(config-if)# glbp 1 forwarder preempt delay minimum 60
+R1(config-if)# exit
+R1(config)#
+
+-------------------------------------------------------------------------------------------------------------------------
+
+R2(config)# track 100 interface e1/0 ip routing
+R2(config)# interface e0/0
+R2(config-if)# ip address 10.0.0.101 255.255.255.0
+R2(config-if)# glbp 1 priority 115
+R2(config-if)# glbp 1 preempt delay minimum 60
+R2(config-if)# glbp 1 authentication md5 key-string C!sc0
+R2(config-if)# glbp 1 load-balancing host-dependent
+R2(config-if)# glbp 1 ip 10.0.0.1
+R2(config-if)# glbp 1 weighting 110 lower 95 upper 105 
+R2(config-if)# glbp 1 weighting track 1 decrement 10
+R2(config-if)# glbp 1 forwarder preempt delay minimum 60
+R2(config-if)# exit
+R2(config)#
+
+--------------------------------------------------------------------------------------------------------------------------
+
+R1(config)# ip route 0.0.0.0 0.0.0.0 1.1.1.1 
+R1(config)# ip route 10.0.0.0 255.0.0.0 1.1.1.2
+R1(config)# ip route 10.20.0.0 255.255.0.0 1.1.1.3
+R1(config)# ip route 10.20.30.0 255.255.255.0 1.1.1.4
+R1(config)# ip route 10.20.30.64 255.255.255.192 1.1.1.5 tag 10
+R1(config)#
+
+--------------------------------------------------------------------------------------------------------------------------
+
+R1(config)# ip route 0.0.0.0 0.0.0.0 1.1.1.1 
+R1(config)# ip route 10.0.0.0 255.0.0.0 1.1.1.2
+R1(config)# ip route 10.20.0.0 255.255.0.0 1.1.1.3
+R1(config)# ip route 10.20.30.0 255.255.255.0 1.1.1.4
+R1(config)# ip route 10.20.30.64 255.255.255.192 1.1.1.5 tag 10
+R1(config)#
+
+--------------------------------------------------------------------------------------------------------------------------
+
+R1(config)# key chain pwd
+R1(config-keychain)# key 1
+R1(config-keychain-key)# key-string C!sc0
+R1(config-keychain-key)# exit
+R1(config-keychain)# exit
+R1(config)# router rip 
+R1(config-router)# version 2 R1(config-router)# no auto-summary 
+R1(config-router)# no validate-update-source
+R1(config-router)# network 10.0.0.0
+R1(config-router)# neighbor 192.168.1.2
+R1(config-router)# timers basic 5 15 20
+R1(config-router)# exit
+R1(config)# interface e0
+R1(config-if)# ip rip authentication mode md5
+R1(config-if)# ip rip authentication key-chain pwd
+R1(config-if)# ip summary-address rip 10.2.0.0 255.255.0.0
+R1(config-if)# exit
+R1(config)#
+
+-------------------------------------------------------------------------------------------------------------------------
+
+A(config)# router ospf 100
+A(config-router)# router-id 10.0.0.255
+A(config-router)# network 10.0.0.0 0.0.0.255 area 0
+A(config-router)# network 10.0.64.0 0.0.15.255 area 0
+A(config-router)# network 10.0.1.0 0.0.0.255 area 1
+A(config-router)# network 10.0.80.0 0.0.15.255 area 1
+A(config-router)# area 1 stub no-summary
+A(config-router)# area 0 authentication
+A(config-router)# area 0 range 10.0.0.0 255.255.255.0
+A(config-router)# area 0 range 10.0.64.0 255.255.240.0
+A(config-router)# area 1 range 10.0.1.0 255.255.255.0
+A(config-router)# area 1 range 10.0.80.0 255.255.240.0
+A(config-router)# exit
+A(config)#
+A(config)# interface Gi0/0
+A(config-if)# no shut
+A(config-if)# description “To router B in area 0”
+A(config-if)# ip address 10.0.0.1 255.255.255.252
+A(config-if)# ip ospf cost 10
+A(config-if)# ip ospf message-digest-key 1 md5 C!sc0
+A(config-if)# exit
+A(config)#
+
+--------------------------------------------------------------------------------------------------------------------------
+
+A1(config)# router ospf 100
+A1(config-router)# router-id 10.0.1.254
+A1(config-router)# network 10.0.1.0 0.0.0.255 area 1
+A1(config-router)# network 10.0.80.0 0.0.15.255 area 1
+A1(config-router)# area 1 stub no-summary
+A1(config-router)# passive-interface Gi1/0
+A1(config-router)# exit
+A1(config)#
+
+--------------------------------------------------------------------------------------------------------------------------
+
+A(config)# key chain ISIS-KEY
+A(config-keychain)# key 1
+A(config-keychain-key)# key-string C!sc0
+A(config-keychain-key)# exit
+A(config-keychain)# exit
+A(config)#
+A(config)# router isis XYZ_ent
+A(config-isis)# net 49.0000.0100.0000.0255.00
+A(config-isis)# exit
+A(config)#
+A(config)# interface Gi0/0
+A(config-if)# circuit-type level-1-2
+A(config-if)# ip router isis XYZ_ent
+A(config-if)# exit
+A(config)# interface Gi1/0
+A(config-if)# circuit-type level-1
+A(config-if)# ip router isis XYZ_ent
+A(config-if)# authentication mode md5 level-2
+A(config-if)# authentication key-chain ISIS-KEY level-2
+A(config-if)# exit
+A(config)#
+
+--------------------------------------------------------------------------------------------------------------------------
+
+A1(config)#
+A1(config)# router isis XYZ_ent
+A1(config-isis)# net 49.0001.0100.0000.1254.00
+A1(config-isis)# exit
+A1(config)#
+
+--------------------------------------------------------------------------------------------------------------------------
+
+RA(config)#
+RA(config)# router ospf 1 
+RA(config-router)# redistribute static tag 10 subnets 
+RA(config-router)# redistribute connected subnets 
+RA(config-router)# redistribute rip subnets 
+RA(config-router)# redistribute isis subnets
+
+--------------------------------------------------------------------------------------------------------------------------
+
+RouterA(config)#
+RouterA(config)# interface range gig0/1 – 4
+RouterA(config-if-range)# switchport mode access
+RouterA(config-if-range)# switchport access vlan 10
+RouterA(config-if-range)# exit
+RouterA(config)# interface range gig0/5 – 8
+RouterA(config-if-range)# switchport mode access
+RouterA(config-if-range)# switchport access vlan 20
+RouterA(config-if-range)# exit
+RouterA(config)# interface vlan10
+RouterA(config-if)# ip addr 10.0.0.1 255.255.255.0
+RouterA(config-if)# exit
+RouterA(config)# interface vlan20
+RouterA(config-if)# ip addr 10.0.1.1 255.255.255.0
+RouterA(config-if)# exit
+RouterA(config)#
+
+---------------------------------------------------------------------------------------------------------------------------
+
+RouterA(config)#
+RouterA(config)# interface range gig0/1 – 4
+RouterA(config-if-range)# switchport mode access
+RouterA(config-if-range)# switchport access vlan 10
+RouterA(config-if-range)# exit
+RouterA(config)# interface range gig0/5 – 8
+RouterA(config-if-range)# switchport mode access
+RouterA(config-if-range)# switchport access vlan 20
+RouterA(config-if-range)# exit
+RouterA(config)# interface vlan10
+RouterA(config-if)# ip vrf Domain-1
+RouterA(config-if)# ip addr 10.0.0.1 255.255.255.0
+RouterA(config-if)# exit
+RouterA(config)# interface vlan20
+uterA(config-if)# ip vrf Domain-2
+RouterA(config-if)# ip addr 10.0.1.1 255.255.255.0
+RouterA(config-if)# exit
+RouterA(config)# ip route vrf Domain-1 0.0.0.0 0.0.0.0 10.0.0.100
+RouterA(config)# ip route vrf Domain-2 0.0.0.0 0.0.0.0 10.0.1.100
+RouterA(config)#
+
+---------------------------------------------------------------------------------------------------------------------------
+
+Switch# configure terminal
+Switch(config)# stack-mac persistent timer 0
+Switch(config)# switch 1 priority 15
+Switch(config)# switch 5 priority 14
+Switch(config)# end
+Switch# copy running-config startup-config
+Switch#
+
+---------------------------------------------------------------------------------------------------------------------------
+
+Router# configure terminal
+Router(config)# interface Eth0/0
+Router(config-if)# no ip address
+Router(config-subif)# interface Eth0/0.1
+Router(config-subif)# description VLAN#1-Mgmt
+Router(config-subif)# encapsulation dot1q 1 native
+Router(config-subif)# ip address 192.168.0.1 255.255.255.0 
+Router(config-if)# interface Eth0/0.50
+Router(config-subif)# description VLAN#50-Employee
+Router(config-subif)# encapsulation dot1q 50
+Router(config-subif)# ip address 192.168.1.1 255.255.255.0
+Router(config-subif)# interface Eth0/0.70
+Router(config-subif)# description VLAN#70-Guest
+Router(config-subif)# encapsulation dot1q 70
+Router(config-subif)# ip address 192.168.2.1 255.255.255.0
+Router(config-subif)# exit
+Router(config-if)# exit
+Router(config)# 
+
+----------------------------------------------------------------------------------------------------------------------------
+
+Router(config)# interface Eth0/0.70 
+Router(config-subif)# ip helper-address 100.8.200.100
+
+----------------------------------------------------------------------------------------------------------------------------
+
+AP# ap-type mobility-express tftp://10.8.1.10/ AIR-AP3800-K9-8-3-102-0.tar
+
+----------------------------------------------------------------------------------------------------------------------------
+
+AP# ap-type capwap
+
+----------------------------------------------------------------------------------------------------------------------------
+
+Router# configure terminal
+Router(config)# controller e1 2/0/0
+Router(config-controller)# clock source line
+Router(config-controller)# linecode hdb3
+Router(config-controller)# channel-group 0 unframed
+Router(config-controller)# exit
+Router(config)# interface serial 2/0/0:0
+Router(config-if)# encapsulation hdlc
+Router(config-if)# ip address 10.1.1.1 255.255.255.252
+Router(config-if)# exit
+Router(config)# exit
+Router#
+
+----------------------------------------------------------------------------------------------------------------------------
+
+Router# configure terminal
+Router(config)# controller e1 2/0/0
+Router(config-controller)# clock source line
+Router(config-controller)# linecode hdb3
+Router(config-controller)# channel-group 1 timeslots 1
+Router(config-controller)# exit
+Router(config)# interface serial 2/0/0:1
+Router(config-if)# encapsulation ppp 
+Router(config-if)# ip address 10.1.1.1 255.255.255.252
+Router(config-if)# exit
+Router(config)# exit
+Router#
+
+----------------------------------------------------------------------------------------------------------------------------
+
+Router(config)# interface Serial0/0
+Router(config-if)# encapsulation frame-relay
+Router(config-if)# interface Serial0/0.2 point-to-point
+Router(config-subif)# ip address 10.10.10.1 255.255.255.252
+Router(config-subif)# frame-relay interface-dlci 50
+Router(config-subif)# interface Serial0/0.3 point-to-point
+Router(config-subif)# ip address 10.10.12.1 255.255.255.252
+Router(config-subif)# frame-relay interface-dlci 70
+Router(config-subif)# interface Serial0/0.4 point-to-point
+Router(config-subif)# exit
+
+---------------------------------------------------------------------------------------------------------------------------
+
+Router(config)# interface multilink 10
+Router(config-if)# ip address 10.0.2.1 255.255.255.252
+Router(config-if)# ppp multilink
+Router(config-if)# ppp multilink group 10
+Router(config-if)# ppp multilink min-links 2 mandatory
+Router(config-if)# exit
+Router(config)# interface serial 0/0
+Router(config-if)# encapsulation ppp
+Router(config-if)# ppp multilink
+Router(config-if)# ppp multilink group 10 
+Router(config)# interface serial 0/1
+Router(config-if)# encapsulation ppp
+Router(config-if)# ppp multilink
+Router(config-if)# ppp multilink group 10 
+
+----------------------------------------------------------------------------------------------------------------------------
+
+R1(config)# interface tunnel 0
+R1(config-if)# bandwidth 1000
+R1(config-if)# keepalive 3 7
+R1(config-if)# tunnel source 1.1.1.1
+R1(config-if)# tunnel destination 2.2.2.2
+R1(config-if)# tunnel key 1000
+R1(config-if)# tunnel mode gre ip
+R1(config-if)# ip mtu 1400
+R1(config-if)# ip address 10.0.1.1 255.255.255.252
+R1(config-if)# exit
+R1(config)# ip route 10.0.8.0 255.255.255.0 10.0.1.2
+
+----------------------------------------------------------------------------------------------------------------------------
+
+R2(config)# interface tunnel 10
+R2(config-if)# bandwidth 1000
+R2(config-if)# keepalive 3 7
+R2(config-if)# tunnel source 2.2.2.2
+R2(config-if)# tunnel destination 1.1.1.1
+R2(config-if)# tunnel key 1000
+R2(config-if)# tunnel mode gre ip
+R2(config-if)# ip mtu 1400
+R2(config-if)# ip address 10.0.1.2 255.255.255.252
+R2(config-if)# exit
+R2(config)# ip route 10.0.0.0 255.255.255.0 10.0.1.1
+
+---------------------------------------------------------------------------------------------------------------------------
+
+Router(config)# ip vrf Entity-A
+Router(config-vrf)# rd 100:1
+Router(config-vrf)# exit
+Router(config)# ip vrf Entity-B
+Router(config-vrf)# rd 100:2
+Router(config-vrf)# exit
+Router(config)# interface gig0/1
+Router(config-if)# ip vrf forwarding Entity-A
+Router(config-if)# ip addr 10.0.7.1 255.255.255.0
+Router(config-if)# exit
+Router(config)# interface gig0/2
+Router(config-if)# ip vrf forwarding Entity-B
+Router(config-if)# ip addr 10.0.0.1 255.255.255.0
+Router(config-if)# exit
+Router(config)# interface gig0/3
+Router(config-if)# ip vrf forwarding Entity-A
+Router(config-if)# ip addr 10.1.7.1 255.255.255.252
+Router(config-if)# exit
+Router(config)# interface gig0/4
+Router(config-if)# ip vrf forwarding Entity-B
+Router(config-if)# ip addr 10.1.0.1 255.255.255.252
+Router(config-if)# exit
+Router(config)# ip route vrf Entity-A 0.0.0.0 0.0.0.0 10.1.7.2
+Router(config)# ip route vrf Entity-B 0.0.0.0 0.0.0.0 10.1.0.2
+
+----------------------------------------------------------------------------------------------------------------------------
+
+R1(config)# interface Tunnel0
+R1(config-if)# ip address 192.168.1.1 255.255.255.252
+R1(config-if)# ip mtu 1400
+R1(config-if)# ip tcp adjust-mss 1360
+R1(config-if)# tunnel source 1.1.1.1
+R1(config-if)# tunnel destination 1.1.1.2
+
+R1(config)# crypto isakmp policy 1
+R1(config-isakmp)# encr 3des
+R1(config-isakmp)# hash md5
+R1(config-isakmp)# authentication pre-share
+R1(config-isakmp)# group 2
+R1(config-isakmp)# lifetime 86400
+ 
+R1(config)# crypto isakmp key C!sc0123 address 1.1.1.2
+R1(config)# crypto ipsec transform-set TS esp-3des esp-md5-hmac
+R1(config)# crypto ipsec profile protect-gre
+R1(ipsec-profile)# set security-association lifetime seconds 86400
+R1(ipsec-profile)# set transform-set TS
+ 
+R1(config)# interface Tunnel0
+R1(config-if)# tunnel protection ipsec profile protect-gre
+
+R1(config)# ip route 10.8.100.0 255.255.255.0 192.168.1.2
+
+------------------------------------------------------------------------------------------------------------------------
+
+Router(config)# arp 10.0.0.1 bbaa.ddcc.8642 arpa
+
+------------------------------------------------------------------------------------------------------------------------
+
+Router(Config)# router eigrp 65500
+Router(Config-router)# network 192.168.0.0 
+Router(Config-router)# traffic-share balanced
+Router(Config-router)# maximum-paths 5
+Router(Config-router)# variance 3
+
+
+
+
+

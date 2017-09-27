@@ -1,0 +1,162 @@
+Switch(config)# interface gig0/1
+Switch(config-if)# switchport access vlan 10
+Switch(config-if)# switchport port-security
+Switch(config-if)# switchport port-security maximum 5
+Switch(config-if)# switchport port-security violation restrict
+Switch(config-if)# switchport port-security aging time 5
+Switch(config-if)# switchport port-security aging type inactivity
+
+---------------------------------------------------------------------------
+
+Switch(config)# interface GigabitEthernet 0/1
+Switch(config-if)# description User_facing_port
+Switch(config-if)# storm-control broadcast level 5.00
+Switch(config-if)# storm-control unicast level 80.00
+Switch(config-if)# storm-control action trap
+
+----------------------------------------------------------------------------
+
+!
+Switch(config)# interface GigabitEthernet 0/9
+Switch(config-if)# description User_Port
+Switch(config-if)# switchport protected
+Switch(config-if)# interface GigabitEthernet 0/1
+Switch(config-if)# description To_Router_Gig_0/1
+Switch(config-if)# 
+
+----------------------------------------------------------------------------
+
+Router(config)# interface GigabitEthernet 0/1
+Router(config-if)# description To_Switch_Gig_0/1
+Router(config-if)# ip addr 10.1.1.1 255.255.255.0
+Router(config-if)# ip local-proxy arp
+
+-----------------------------------------------------------------------------
+
+Switch(config)# ip access-list extended user-infra
+Switch(config-ext-nacl)# deny ip any 172.16.0.0 0.0.15.255
+Switch(config-ext-nacl)# permit ip any any
+Switch(config-ext-nacl)# exit
+Switch(config)# interface gi0/0
+Switch(config-if)# access-group user-infra in
+
+------------------------------------------------------------------------------
+
+Router(config)# no service finger
+Router(config)# no service pad
+Router(config)# no service udp-small-servers
+Router(config)# no service tcp-small-servers
+Router(config)# no ip bootp server
+Router(config)# no cdp run
+Router(config)# no ip http server
+
+-------------------------------------------------------------------------------
+
+Router(config)# config term
+Router(config)# interface Gig0/3
+Router(config-if)# no ip redirects
+Router(config-if)# no ip directed-broadcast
+Router(config-if)# no ip proxy-arp
+Router(config-if)# no cdp enable
+
+-------------------------------------------------------------------------------
+
+Switch(config)# configure terminal
+! Enable all interfaces configured for PortFast with 
+! bpduguard by default
+!
+Switch(config)# spanning-tree portfast bpduguard default
+!! Enable an interface for PortFast
+!
+Switch(config)# interface GigabitEthernet 0/1
+Switch(config-if)# spanning-tree portfast
+!
+! Interface not configured for PortFast with bpduguard
+Switch(config)# interface GigabitEthernet 0/2
+Switch(config-if)# spanning-tree bpduguard enable
+!
+
+--------------------------------------------------------------------------------
+
+Switch(config)# configure terminal
+!
+! Interface configured for bpdu filter feature
+!
+Switch(config)# interface GigabitEthernet 0/3
+Switch(config-if)# spanning-tree bpdufilter enable
+!
+
+--------------------------------------------------------------------------------
+
+Switch(config)# configure terminal
+!
+! Interface configured for rootguard feature
+!
+Switch(config)# interface GigabitEthernet 0/3
+Switch(config-if)# spanning-tree guard root
+!
+
+--------------------------------------------------------------------------------
+
+Switch(config)# configure terminal
+!
+! Interface configured for loop guard feature
+!
+Switch(config)# spanning-tree loopguard default
+!
+
+--------------------------------------------------------------------------------
+
+Switch(config)# ip dhcp snooping
+Switch(config)# ip dhcp snooping vlan10
+Switch(Config)# interface Gig0/1
+Switch(config-if)# ip dhcp snooping limit rate 100
+!
+! Defining the network ports as DHCP snooping trusted port
+!
+Switch(Config)# interface Gig0/23
+Switch(config-if)# ip dhcp snooping trust
+!
+
+--------------------------------------------------------------------------------
+
+Switch(config)# ip dhcp snooping
+Switch(config)# ip arp inspection validate src-mac dst-mac ip
+Switch(config)# ip dhcp snooping vlan 10
+Switch(config)# ip arp inspection vlan 10
+!
+Switch(Config)# interface Gig0/1
+Switch(config-if)# ip arp inspection limit rate 10
+!
+! Defining the error disabled ports due to DAI to recover after 30s
+!
+Switch(config-if)# errdisable detect cause arp-inspection
+Switch(config-if)# errdisable recovery cause arp-inspection
+Switch(config-if)# errdisable recovery interval 30
+!
+! Defining the network ports as DHCP snooping trusted port
+!
+Switch(Config)# interface Gig0/23
+Switch(config-if)# ip arp inspection trust
+!
+
+-------------------------------------------------------------------------------
+
+Router(config)# no ip bootp server
+Router(config)# no cdp running
+Router(config)# no service dhcp
+Router(config)# no ip domain lookup  
+Router(config)# ip name-server 8.8.8.8
+Router(config)# no service finger
+Router(config)# no service mop
+Router(config)# no service pad
+Router(config)# no service tcp-small-servers 
+Router(config)# no service udp-small-servers 
+Router(config)# service tcp-keepalives-in 
+
+
+
+Router(config)# servicepassword-encryption
+
+-------------------------------------------------------------------------------
+
