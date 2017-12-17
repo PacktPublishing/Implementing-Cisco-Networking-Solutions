@@ -31,5 +31,3 @@ build a robust network. Most of the configurations shown in this book are for iO
 
 * [Cisco ACI Cookbook](https://www.packtpub.com/networking-and-servers/cisco-aci-cookbook?utm_source=github&utm_medium=repository&utm_campaign=9781787129214)
 
-### Suggestions and Feedback
-[Click here](https://docs.google.com/forms/d/e/1FAIpQLSe5qwunkGf6PUvzPirPDtuy1Du5Rlzew23UBp2S-P3wB-GcwQ/viewform) if you have any feedback or suggestions.
